@@ -5,70 +5,106 @@ using System.Text;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
+using System.Threading.Tasks;
 // using System.Networking.Definitions;
 
 class Monolith
 {
-  // server side data example
-  int example = 0;
-
   class Peer
   {
     public string id;
-    public IPEndPoint endPoint;
+    public string endPoint;
     public int data;
+
+    public Peer(string endPoint)
+    {
+      this.endPoint = endPoint;
+    }
   }
 
   static void Main(string[] args)
   {
-    Console.WriteLine("starting up...");
+    Console.WriteLine("oriels server now booting up...");
 
     // listen for clients on udp port 1234
-    Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Udp);
+    Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     socket.Bind(new IPEndPoint(IPAddress.Any, 1234));
-    Console.WriteLine("now listening...");
+    Console.WriteLine("socket bound on port: 1234");
+
+    // socket.Listen(100); // The maximum length of the pending connections queue.
+
 
     // peer data is temporary, blockchain+ipfs is forever
-    peerList = new List<Peer>();
+    List<Peer> peerList = new List<Peer>();
 
-    // loop forever
-    while (true)
+    Task listenTask = Task.Factory.StartNew(() =>
     {
-      byte[] data;
-      // receive a message
-      IPEndPoint sender = new IPEndPoint(IPAddress.Any, 0);
-
-      data = udp.ReceiveAsync(ref sender, );
-
-      bool newPeer = true;
-      for (int i = 0; i < peerList.Count; i++)
+      try
       {
-        Peer peer = peerList[i];
-        if (peer.endPoint == sender)
+        while (true)
         {
-          // update peer data
-          peer.data = BitConverter.ToInt32(data, 0);
-          newPeer = false;
+          byte[] data = new byte[1024];
+          EndPoint sender = new IPEndPoint(IPAddress.Any, 0);
+          socket.ReceiveFrom(data, ref sender);
+
+          bool newPeer = true;
+          for (int i = 0; i < peerList.Count; i++)
+          {
+            Peer peer = peerList[i];
+            if (peer.endPoint == sender.ToString())
+            {
+              // update peer data
+              peer.data = BitConverter.ToInt32(data, 0);
+              // Console.WriteLine("peer data updated: " + peer.data);
+              newPeer = false;
+              break;
+            }
+          }
+          if (newPeer)
+          {
+            peerList.Add(new Peer(sender.ToString()));
+            Console.WriteLine("new peer connected");
+          }
         }
       }
-      if (newPeer)
+      catch (Exception e)
       {
-        // add peer to list
-        peerList.Add(new Peer() { id = Encoding.ASCII.GetBytes(data), endPoint = sender, data = 0 });
+        Console.WriteLine(e.ToString());
       }
+    });
 
+    // send data to peers
+    Task sendTask = Task.Factory.StartNew(() =>
+    {
+      try
+      {
+        while (true)
+        {
+          for (int i = 0; i < peerList.Count; i++)
+          {
+            Peer peer = peerList[i];
+            Console.WriteLine("sending data to peer: " + peer.data);
+            byte[] data = BitConverter.GetBytes(peer.data);
+            socket.SendTo(data, IPEndPoint.Parse(peer.endPoint));
+          }
+          Thread.Sleep(100);
+        }
+      }
+      catch (Exception e)
+      {
+        Console.WriteLine(e.ToString());
+      }
+    });
 
-      // realtime data example
-      // 
+    Task.WaitAll(listenTask, sendTask);
 
-      // print the message
-      Console.WriteLine("received message: " + Encoding.ASCII.GetString(data));
+    // // print the message
+    // Console.WriteLine("received message: " + Encoding.ASCII.GetString(data));
 
-      // send a message back to the client
-      Console.Write("Enter a message: ");
-      string message = Console.ReadLine();
-      data = Encoding.ASCII.GetBytes(message);
-      udp.Send(data, data.Length, sender);
-    }
+    // // send a message back to the client
+    // Console.Write("Enter a message: ");
+    // string message = Console.ReadLine();
+    // data = Encoding.ASCII.GetBytes(message);
+    // udp.Send(data, data.Length, sender);
   }
 }
