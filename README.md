@@ -1,6 +1,8 @@
 # oriels-server
 
-<b>CMDS</b>  
-git add --all  
-git commit -m ""  
-git push  
+build into a federation model  
+urbit/blockchain "backend" for associating value with identity  
+distributed hash table?  
+
+CURRENT STATE  
+client server model(on linode) that distributes data between a handful of connected clients  
