@@ -12,7 +12,7 @@ class Monolith {
   class Peer {
     public string id;
     public string endPoint;
-    public int data;
+    public float x, y, z;
 
     public Peer(string endPoint) {
       this.endPoint = endPoint;
@@ -32,6 +32,7 @@ class Monolith {
 
     while (true) {
       byte[] data = new byte[1024];
+      int dataPos;
       EndPoint sender = new IPEndPoint(IPAddress.Any, 0);
       socket.ReceiveFrom(data, ref sender);
 
@@ -40,8 +41,11 @@ class Monolith {
         Peer peer = peerList[i];
         if (peer.endPoint == sender.ToString()) {
           // update peer data
-          peer.data = BitConverter.ToInt32(data, 0);
-          // Console.WriteLine("peer data updated: " + peer.data);
+          dataPos = 0;
+          peer.x = BitConverter.ToSingle(data, dataPos); dataPos += 4;
+          peer.y = BitConverter.ToSingle(data, dataPos); dataPos += 4;
+          peer.z = BitConverter.ToSingle(data, dataPos); dataPos += 4;
+          
           newPeer = false;
           break;
         }
@@ -51,12 +55,16 @@ class Monolith {
         Console.WriteLine("new peer connected");
       }
 
-      // send data to peers
+      // send data to peers !! change to sending other peer data, rather than relaying their own
       for (int i = 0; i < peerList.Count; i++)
       {
         Peer peer = peerList[i];
-        Console.WriteLine("sending data to peer: " + peer.data);
-        data = BitConverter.GetBytes(peer.data);
+        // data = new byte[256];
+        dataPos = 0;
+        // Console.WriteLine("sending data to peer: " + peer.data);
+        BitConverter.GetBytes(peer.x).CopyTo(data, dataPos); dataPos += 4;
+        BitConverter.GetBytes(peer.y).CopyTo(data, dataPos); dataPos += 4;
+        BitConverter.GetBytes(peer.z).CopyTo(data, dataPos); dataPos += 4;
         socket.SendTo(data, IPEndPoint.Parse(peer.endPoint));
       }
 
