@@ -34,25 +34,27 @@ class Monolith {
       byte[] data = new byte[1024];
       int dataPos;
       EndPoint sender = new IPEndPoint(IPAddress.Any, 0);
-      socket.ReceiveFrom(data, ref sender);
+      while (socket.Available > 0) {
+        socket.ReceiveFrom(data, ref sender);
 
-      bool newPeer = true;
-      for (int i = 0; i < peerList.Count; i++) {
-        Peer peer = peerList[i];
-        if (peer.endPoint == sender.ToString()) {
-          // update peer data
-          dataPos = 0;
-          peer.x = BitConverter.ToSingle(data, dataPos); dataPos += 4;
-          peer.y = BitConverter.ToSingle(data, dataPos); dataPos += 4;
-          peer.z = BitConverter.ToSingle(data, dataPos); dataPos += 4;
-          
-          newPeer = false;
-          break;
+        bool newPeer = true;
+        for (int i = 0; i < peerList.Count; i++) {
+          Peer peer = peerList[i];
+          if (peer.endPoint == sender.ToString()) {
+            // update peer data
+            dataPos = 0;
+            peer.x = BitConverter.ToSingle(data, dataPos); dataPos += 4;
+            peer.y = BitConverter.ToSingle(data, dataPos); dataPos += 4;
+            peer.z = BitConverter.ToSingle(data, dataPos); dataPos += 4;
+            
+            newPeer = false;
+            break;
+          }
         }
-      }
-      if (newPeer) {
-        peerList.Add(new Peer(sender.ToString()));
-        Console.WriteLine("new peer connected");
+        if (newPeer) {
+          peerList.Add(new Peer(sender.ToString()));
+          Console.WriteLine("new peer connected");
+        }
       }
 
       // send data to peers !! change to sending other peer data, rather than relaying their own
