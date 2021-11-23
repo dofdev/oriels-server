@@ -12,10 +12,10 @@ using System.Timers;
 
 class Monolith {
   class Peer {
-    public string id;
     public string endPoint;
-    public float x, y, z;
     public float lastTime;
+    
+    public byte[] data = new byte[1024];
 
     public Peer(string endPoint) {
       this.endPoint = endPoint;
@@ -45,7 +45,6 @@ class Monolith {
       time = watch.ElapsedMilliseconds / 1000.0f;
 
       byte[] data = new byte[1024];
-      int dataPos;
       EndPoint sender = new IPEndPoint(IPAddress.Any, 0);
       while (socket.Available > 0) {
         try {
@@ -55,10 +54,8 @@ class Monolith {
             Peer peer = peerList[i];
             if (peer.endPoint == sender.ToString()) {
               // update peer data
-              dataPos = 0;
-              peer.x = BitConverter.ToSingle(data, dataPos); dataPos += 4;
-              peer.y = BitConverter.ToSingle(data, dataPos); dataPos += 4;
-              peer.z = BitConverter.ToSingle(data, dataPos); dataPos += 4;
+              data.CopyTo(peer.data, 0);
+              // (x ~ x)
 
               peer.lastTime = time;
               
@@ -86,13 +83,8 @@ class Monolith {
           Console.WriteLine($"peer{i} timed out");
         }
 
-        // data = new byte[256];
-        dataPos = 0;
         // Console.WriteLine("sending data to peer: " + peer.data);
-        BitConverter.GetBytes(peer.x).CopyTo(data, dataPos); dataPos += 4;
-        BitConverter.GetBytes(peer.y).CopyTo(data, dataPos); dataPos += 4;
-        BitConverter.GetBytes(peer.z).CopyTo(data, dataPos); dataPos += 4;
-        socket.SendTo(data, IPEndPoint.Parse(peer.endPoint));
+        socket.SendTo(peer.data, IPEndPoint.Parse(peer.endPoint));
       }
 
       // Console.WriteLine(watch.ElapsedMilliseconds);
