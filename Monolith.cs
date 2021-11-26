@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Timers;
+using FlatBuffers;
+using Oriels;
 // using Timer = System.Timers.Timer;
 // using System.Networking.Definitions;
 
@@ -29,6 +31,9 @@ class Monolith {
     watch.Start();
     float time = 0;
 
+    // byte[] data = new byte[1024];
+    // ByteBuffer bb = new ByteBuffer(data);
+    // Oriels.Peer peer = Oriels.Peer.GetRootAsPeer(bb);
     Console.WriteLine("oriels server now booting up...");
 
     // listen for clients on udp port 1234
@@ -48,7 +53,7 @@ class Monolith {
       EndPoint sender = new IPEndPoint(IPAddress.Any, 0);
       while (socket.Available > 0) {
         try {
-          socket.ReceiveFrom(data, ref sender);
+          socket.ReceiveFrom(data, 0, 1024, SocketFlags.None, ref sender);
           bool newPeer = true;
           for (int i = 0; i < peerList.Count; i++) {
             Peer peer = peerList[i];
@@ -82,9 +87,18 @@ class Monolith {
           peerList.RemoveAt(i);
           Console.WriteLine($"peer{i} timed out");
         }
-
+        
+        for (int j = 0; j < peerList.Count; j++)
+        {
+          Peer peer2 = peerList[j];
+          // if (peer.endPoint == peer2.endPoint) {
+          //   continue;
+          // }
+          // send data to peer
+          socket.SendTo(peer.data, IPEndPoint.Parse(peer2.endPoint));
+        }
         // Console.WriteLine("sending data to peer: " + peer.data);
-        socket.SendTo(peer.data, IPEndPoint.Parse(peer.endPoint));
+        // socket.SendTo(peer.data, IPEndPoint.Parse(peer.endPoint));
       }
 
       // Console.WriteLine(watch.ElapsedMilliseconds);
