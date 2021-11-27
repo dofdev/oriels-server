@@ -29,12 +29,8 @@ class Monolith {
     watch.Start();
     float time = 0;
 
-    // byte[] data = new byte[1024];
-    // ByteBuffer bb = new ByteBuffer(data);
-    // Oriels.Peer peer = Oriels.Peer.GetRootAsPeer(bb);
     Console.WriteLine("oriels server now booting up...");
 
-    // listen for clients on udp port 1234
     Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
     // socket.SendTimeout = 1000;
     // socket.ReceiveTimeout = 1000;
@@ -56,10 +52,7 @@ class Monolith {
           for (int i = 0; i < peerList.Count; i++) {
             Peer peer = peerList[i];
             if (peer.endPoint == sender.ToString()) {
-              // update peer data
               data.CopyTo(peer.data, 0);
-              // (x ~ x)
-
               peer.lastTime = time;
               
               newPeer = false;
@@ -95,13 +88,9 @@ class Monolith {
           // send data to peer
           socket.SendTo(peer.data, IPEndPoint.Parse(peer2.endPoint));
         }
-        // Console.WriteLine("sending data to peer: " + peer.data);
-        // socket.SendTo(peer.data, IPEndPoint.Parse(peer.endPoint));
       }
 
-      // Console.WriteLine(watch.ElapsedMilliseconds);
-
-      Thread.Sleep(100); // mainly for debugging
+      Thread.Sleep(10);
     }
   }
 }
