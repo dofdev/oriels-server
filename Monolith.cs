@@ -1,14 +1,6 @@
 using System;
 using System.Net;
 using System.Net.Sockets;
-using System.Text;
-using System.Collections;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Timers;
-// using Timer = System.Timers.Timer;
-// using System.Networking.Definitions;
 
 class Monolith {
   class Peer {
@@ -78,31 +70,12 @@ class Monolith {
           for (int j = 0; j < peers.Length; j++)
           {
             Peer peer2 = peers[j];
-            // if (peer.endPoint == peer2.endPoint) {
-            //   continue;
-            // }
-            // send data to peer
+
             if (peer2 != null) {
-              // if (peer2.lastTime > peer.lastTime) {
-              //   // socket.SendTo(peer.data, peer2.endPoint);
-              //   socket.SendTo(peer.data, 0, 1024, SocketFlags.None, peer2.endPoint);
-              // }
-              try {
-                socket.SendTo(peer.data, IPEndPoint.Parse(peer2.endPoint));
-              } catch (Exception e) {
-                Console.WriteLine("error sending data" + e.Message);
-                peers[j] = null;
-                Console.WriteLine("peer disconnected");
-                break;
-              }
+              socket.SendTo(peer.data, IPEndPoint.Parse(peer2.endPoint));
             }
           }
         }
-        // time out
-        // if (peer.lastTime > time + 6f) {
-        //   peers.RemoveAt(i);
-        //   Console.WriteLine($"peer{i} timed out");
-        // }
       }
 
       // Thread.Sleep(1);
