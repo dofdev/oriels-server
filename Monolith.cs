@@ -38,7 +38,7 @@ class Monolith {
     Console.WriteLine("socket bound on port: 1234");
 
     // peer data is temporary, blockchain+ipfs is forever
-    List<Peer> peerList = new List<Peer>();
+    Peer[] peers = new Peer[64];
 
     while (true) {
       time = watch.ElapsedMilliseconds / 1000.0f;
@@ -46,51 +46,66 @@ class Monolith {
       byte[] data = new byte[1024];
       EndPoint sender = new IPEndPoint(IPAddress.Any, 0);
       while (socket.Available > 0) {
+        int index = 0;
         try {
           socket.ReceiveFrom(data, 0, 1024, SocketFlags.None, ref sender);
-          bool newPeer = true;
-          for (int i = 0; i < peerList.Count; i++) {
-            Peer peer = peerList[i];
-            if (peer.endPoint == sender.ToString()) {
-              data.CopyTo(peer.data, 0);
-              peer.lastTime = time;
-              
-              newPeer = false;
+          for (int i = 0; i < peers.Length; i++) {
+            if (peers[i] != null) {
+              if (peers[i].endPoint == sender.ToString()) {
+                index = i;
+                // data.CopyTo(peers[i].data, 0);
+                peers[i].data = data;
+                peers[i].lastTime = time;
+                break;
+              }
+            } else {
+              peers[i] = new Peer(sender.ToString());
+              Console.WriteLine("new peer connected");
               break;
             }
           }
-          if (newPeer) {
-            peerList.Add(new Peer(sender.ToString()));
-            Console.WriteLine("new peer connected");
-          }
         } catch (Exception e) {
           Console.WriteLine("error receiving data" + e.Message);
-          // socket.EndReceiveFrom(null, ref sender);
+          peers[index] = null;
           break;
         }
       }
 
-      for (int i = 0; i < peerList.Count; i++)
+      for (int i = 0; i < peers.Length; i++)
       {
-        Peer peer = peerList[i];
+        Peer peer = peers[i];
+        if (peer != null) {
+          for (int j = 0; j < peers.Length; j++)
+          {
+            Peer peer2 = peers[j];
+            // if (peer.endPoint == peer2.endPoint) {
+            //   continue;
+            // }
+            // send data to peer
+            if (peer2 != null) {
+              // if (peer2.lastTime > peer.lastTime) {
+              //   // socket.SendTo(peer.data, peer2.endPoint);
+              //   socket.SendTo(peer.data, 0, 1024, SocketFlags.None, peer2.endPoint);
+              // }
+              try {
+                socket.SendTo(peer.data, IPEndPoint.Parse(peer2.endPoint));
+              } catch (Exception e) {
+                Console.WriteLine("error sending data" + e.Message);
+                peers[j] = null;
+                Console.WriteLine("peer disconnected");
+                break;
+              }
+            }
+          }
+        }
         // time out
-        if (peer.lastTime > time + 6f) {
-          peerList.RemoveAt(i);
-          Console.WriteLine($"peer{i} timed out");
-        }
-        
-        for (int j = 0; j < peerList.Count; j++)
-        {
-          Peer peer2 = peerList[j];
-          // if (peer.endPoint == peer2.endPoint) {
-          //   continue;
-          // }
-          // send data to peer
-          socket.SendTo(peer.data, IPEndPoint.Parse(peer2.endPoint));
-        }
+        // if (peer.lastTime > time + 6f) {
+        //   peers.RemoveAt(i);
+        //   Console.WriteLine($"peer{i} timed out");
+        // }
       }
 
-      Thread.Sleep(10);
+      // Thread.Sleep(1);
     }
   }
 }
