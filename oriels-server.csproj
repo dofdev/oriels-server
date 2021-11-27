@@ -3,9 +3,4 @@
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
   </PropertyGroup>
-  <ItemGroup>
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="FlatBuffers.Core" Version="1.12.0" />
-  </ItemGroup>
 </Project>
