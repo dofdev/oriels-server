@@ -5,22 +5,15 @@ using System.Net.Sockets;
 class Monolith {
   class Peer {
     public string endPoint;
-    public float lastTime;
-    
-    public byte[] data = new byte[1024];
+    public byte[] data;
 
-    public Peer(string endPoint) {
+    public Peer(string endPoint, byte[] data) {
       this.endPoint = endPoint;
+      this.data = data;
     }
   }
 
-  public static long startTime;
-
   static void Main(string[] args) {
-    var watch = System.Diagnostics.Stopwatch.StartNew();
-    watch.Start();
-    float time = 0;
-
     Console.WriteLine("oriels server now booting up...");
 
     Socket socket = new Socket(AddressFamily.InterNetwork, SocketType.Dgram, ProtocolType.Udp);
@@ -33,31 +26,29 @@ class Monolith {
     Peer[] peers = new Peer[64];
 
     while (true) {
-      time = watch.ElapsedMilliseconds / 1000.0f;
-
-      byte[] data = new byte[1024];
+      int bufferSize = 1024;
+      byte[] data = new byte[bufferSize]; 
       EndPoint sender = new IPEndPoint(IPAddress.Any, 0);
       while (socket.Available > 0) {
         int index = 0;
         try {
-          socket.ReceiveFrom(data, 0, 1024, SocketFlags.None, ref sender);
+          socket.ReceiveFrom(data, 0, bufferSize, SocketFlags.None, ref sender);
           for (int i = 0; i < peers.Length; i++) {
             if (peers[i] != null) {
               if (peers[i].endPoint == sender.ToString()) {
                 index = i;
                 // data.CopyTo(peers[i].data, 0);
                 peers[i].data = data;
-                peers[i].lastTime = time;
                 break;
               }
             } else {
-              peers[i] = new Peer(sender.ToString());
+              peers[i] = new Peer(sender.ToString(), data);
               Console.WriteLine("new peer connected");
               break;
             }
           }
         } catch (Exception e) {
-          Console.WriteLine("error receiving data" + e.Message);
+          Console.WriteLine(e.Message);
           peers[index] = null;
           break;
         }
@@ -71,14 +62,12 @@ class Monolith {
           {
             Peer peer2 = peers[j];
 
-            if (peer2 != null) {
+            if (peer2 != null && peer2 != peer) {
               socket.SendTo(peer.data, IPEndPoint.Parse(peer2.endPoint));
             }
           }
         }
       }
-
-      // Thread.Sleep(1);
     }
   }
 }
