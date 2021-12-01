@@ -91,6 +91,8 @@ class Monolith {
           }
         }
       }
+
+      Thread.Sleep(60);
     }
 
     socket.Close();
