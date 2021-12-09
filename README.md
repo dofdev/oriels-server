@@ -1,14 +1,23 @@
+<code>
+
 # oriels-server
 
-build into a federation model  
-urbit/blockchain "backend" for associating value with identity  
-distributed hash table?  
+__pos__ = server.middleman()
 
-CURRENT STATE  
-client server model(on linode) that distributes data between a handful of connected clients  
+__dir__ = web3 + federate()
 
-NEXT STEPS  
-- ~~relaying their own data back -> distribute data of other peers~~
-- ~~ints -> floats~~
+&nbsp;
 
-pace sending packets based on number of peers (instead of 1024 as fast as possible)
+## ++
+remap data to match real world speeds (down > up)
+
+&nbsp;
+
+## --
+decrease the cpu overhead
+
+&nbsp;
+
+## pos += dir * time * funds
+
+</code>
