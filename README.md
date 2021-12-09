@@ -2,22 +2,24 @@
 
 # oriels-server
 
-__pos__ = server.middleman()
+## pos = server.middleman()
 
-__dir__ = web3 + federate()
+## dir = federate() + web3()
 
 &nbsp;
 
-## ++
+## m++
 remap data to match real world speeds (down > up)
 
 &nbsp;
 
-## --
-decrease the cpu overhead
+## m--
+decrease the cpu overhead ? (if it costs more)
 
 &nbsp;
 
-## pos += dir * time * funds
+## p = effort * <a href='https://dofdev.org'>funds</a>
+## vel = p / m
+## pos += dir * vel * time
 
 </code>
